@@ -1,3 +1,9 @@
 node_modules
 .wrangler
 .DS_Store
+macos-status-app/.build
+macos-status-app/.swiftpm
+macos-status-app/Packages
+macos-status-app/*.xcodeproj
+macos-status-app/*.xcworkspace
+DerivedData
