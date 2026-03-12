@@ -1,0 +1,18 @@
+{
+  "name": "valid-web-visit",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "api:dev": "node api/server.js",
+    "worker:dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.14.4",
+    "hono": "^4.7.2"
+  },
+  "devDependencies": {
+    "wrangler": "^4.7.1"
+  }
+}
