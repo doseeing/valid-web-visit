@@ -6,13 +6,15 @@
   "scripts": {
     "api:dev": "node api/server.js",
     "worker:dev": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "test": "vitest run"
   },
   "dependencies": {
     "@hono/node-server": "^1.14.4",
     "hono": "^4.7.2"
   },
   "devDependencies": {
+    "vitest": "^3.0.8",
     "wrangler": "^4.7.1"
   }
 }

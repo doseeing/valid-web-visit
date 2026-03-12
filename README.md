@@ -2,8 +2,8 @@
 
 这个项目包含两个部分：
 
-- 本地 `hono` API 服务：访问 `http://127.0.0.1:3000/hello` 返回 `world`
-- Cloudflare Worker 前端：部署后提供一个页面，用浏览器直接检查本地 API 是否可访问
+- 本地 `hono` API 服务：提供 `/hello` 和 `/files` 两个接口
+- Cloudflare Worker 前端：部署后提供一个页面，用浏览器直接检查本地 API 是否可访问，并查看 `/files` 返回结果
 
 ## 1. 安装依赖
 
@@ -20,11 +20,25 @@ npm run api:dev
 启动成功后，访问：
 
 - `http://127.0.0.1:3000/hello`
+- `http://127.0.0.1:3000/files`
 
 你会看到：
 
 ```txt
 world
+```
+
+以及类似这样的 JSON：
+
+```json
+{
+  "path": "/Users/your-name/Desktop",
+  "count": 2,
+  "files": [
+    { "name": "demo.txt", "type": "file" },
+    { "name": "screenshots", "type": "directory" }
+  ]
+}
 ```
 
 ## 3. 本地预览 Cloudflare Worker 前端
@@ -33,9 +47,18 @@ world
 npm run worker:dev
 ```
 
-本地打开 Wrangler 提供的地址后，点击检测按钮即可检查你机器上的本地 API。
+本地打开 Wrangler 提供的地址后，可以：
 
-## 4. 部署到 Cloudflare
+- 点击“检测 /hello”确认本地接口是否返回 `world`
+- 点击“读取 /files”查看当前用户桌面下的文件列表
+
+## 4. 运行前端测试
+
+```bash
+npm test
+```
+
+## 5. 部署到 Cloudflare
 
 先登录 Cloudflare：
 
@@ -51,7 +74,7 @@ npm run deploy
 
 部署完成后，打开 Worker 的 URL。
 
-## 5. 重要说明
+## 6. 重要说明
 
 部署到 Cloudflare 的 Worker 运行在云端，云端本身无法直接访问你电脑里的 `127.0.0.1`。本项目采用的是：
 
