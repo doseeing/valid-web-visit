@@ -99,6 +99,12 @@ npm run worker:dev
 npm test
 ```
 
+如果你更新了 [resource/logo.png](/Users/weiyao/github/valid_web_visit/resource/logo.png)，可以重新生成 Worker 和 Web 端图标资源：
+
+```bash
+npm run icons:web
+```
+
 ## 6. 部署到 Cloudflare
 
 先登录 Cloudflare：

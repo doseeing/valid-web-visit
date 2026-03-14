@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { buildFilesResult, buildHelloResult, renderPage } from './app.js'
+import { handleRequest } from './index.js'
 
 describe('buildHelloResult', () => {
   it('returns success when hello endpoint responds with world', () => {
@@ -59,5 +60,30 @@ describe('renderPage', () => {
     expect(html).toContain('检测 /hello')
     expect(html).toContain('读取 /files')
     expect(html).toContain('当前用户桌面下的文件列表')
+  })
+
+  it('includes favicon and manifest links', () => {
+    const html = renderPage()
+
+    expect(html).toContain('href="/favicon.ico"')
+    expect(html).toContain('href="/favicon-32x32.png"')
+    expect(html).toContain('href="/apple-touch-icon.png"')
+    expect(html).toContain('href="/site.webmanifest"')
+  })
+})
+
+describe('worker assets', () => {
+  it('serves the web manifest', async () => {
+    const response = handleRequest(new Request('https://example.com/site.webmanifest'))
+
+    expect(response.headers.get('content-type')).toContain('application/manifest+json')
+    expect(await response.text()).toContain('"icons"')
+  })
+
+  it('redirects favicon.ico to the generated PNG favicon', () => {
+    const response = handleRequest(new Request('https://example.com/favicon.ico'))
+
+    expect(response.status).toBe(302)
+    expect(response.headers.get('location')).toBe('https://example.com/favicon-32x32.png')
   })
 })

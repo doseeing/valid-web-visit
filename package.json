@@ -7,6 +7,7 @@
     "api:dev": "bun api/server.js",
     "api:go": "cd go-api && go run -ldflags=-linkmode=external .",
     "api:go:package": "./go-api/scripts/package.sh",
+    "icons:web": "./worker/scripts/generate-web-icons.sh",
     "macos:dev": "cd macos-status-app && swift run",
     "macos:package": "./macos-status-app/scripts/package-app.sh",
     "macos:run": "./macos-status-app/scripts/package-app.sh && open macos-status-app/dist/LocalBridge.app",
