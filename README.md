@@ -144,6 +144,12 @@ npm run macos:package
 macos-status-app/dist/HonoStatusApp.app
 ```
 
+直接运行下面这个命令时，会先重新打包，再打开最新的 `.app`：
+
+```bash
+npm run macos:run
+```
+
 打包时会把这些内容一起塞进 App：
 
 - Go API 可执行文件
