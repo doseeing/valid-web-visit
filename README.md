@@ -1,4 +1,4 @@
-# valid_web_visit
+# localbridge
 
 这个项目包含几个部分：
 
@@ -13,7 +13,7 @@
 npm install
 ```
 
-## 2. 启动本地 Hono API
+## 2. 启动本地 Local Bridge API
 
 ```bash
 npm run api:dev
@@ -49,7 +49,7 @@ world
 npm run api:go
 ```
 
-它默认监听 `http://127.0.0.1:3000`，接口行为和 Hono 版本一致：
+它默认监听 `http://127.0.0.1:3000`，接口行为和现有 JS 版本一致：
 
 - `GET /`
 - `GET /hello`
@@ -117,7 +117,7 @@ npm run deploy
 
 ## 7. 运行 macOS 状态栏 App
 
-状态栏应用位于 [macos-status-app/Package.swift](/Users/weiyao/github/valid_web_visit/macos-status-app/Package.swift)。
+状态栏应用位于 `macos-status-app/Package.swift`。
 
 可以直接用 Xcode 打开这个 Swift Package，或者在终端里执行：
 
@@ -129,7 +129,8 @@ npm run macos:dev
 
 - 优先使用 App 内置的 Go API 二进制
 - 开发态下会使用系统里的 `go` 直接运行 `go-api`
-- 在菜单栏显示 `Hono On`、`Hono Off`、`Hono ...` 或 `Hono Err`
+- 打包后的正式版默认打开 [localbridge.awayyao.workers.dev](https://localbridge.awayyao.workers.dev/)，开发态默认打开本地 `http://127.0.0.1:8787`
+- 在菜单栏显示 `Bridge On`、`Bridge Off`、`Bridge ...` 或 `Bridge Err`
 - 在菜单里提供 `Start/Stop`、打开 `/hello`、打开 `/files` 和最近日志
 
 如果你想把运行时一起打进 `.app`，可以在仓库根目录执行：
@@ -141,7 +142,7 @@ npm run macos:package
 这个命令会生成：
 
 ```text
-macos-status-app/dist/HonoStatusApp.app
+macos-status-app/dist/LocalBridge.app
 ```
 
 直接运行下面这个命令时，会先重新打包，再打开最新的 `.app`：

@@ -3,19 +3,20 @@
 import PackageDescription
 
 let package = Package(
-  name: "HonoStatusApp",
+  name: "LocalBridge",
   platforms: [
     .macOS(.v13)
   ],
   products: [
     .executable(
-      name: "HonoStatusApp",
-      targets: ["HonoStatusApp"]
+      name: "LocalBridge",
+      targets: ["LocalBridge"]
     )
   ],
   targets: [
     .executableTarget(
-      name: "HonoStatusApp"
+      name: "LocalBridge",
+      path: "Sources/LocalBridge"
     )
   ]
 )

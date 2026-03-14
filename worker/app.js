@@ -204,7 +204,7 @@ export function renderPage() {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Local Hono API Checker</title>
+    <title>Local Bridge Checker</title>
     <style>
       :root {
         --panel: rgba(255, 252, 247, 0.86);
@@ -372,7 +372,7 @@ export function renderPage() {
   <body>
     <main class="card">
       <p>Cloudflare Worker Frontend</p>
-      <h1>检查本地 Hono API 和桌面文件</h1>
+      <h1>检查 Local Bridge API 和桌面文件</h1>
       <p>页面部署在 Cloudflare 上，浏览器会直接请求你当前机器上的本地 API，所以可以检查 <code>127.0.0.1</code> 和桌面文件列表接口。</p>
 
       <form id="checker-form">

@@ -1,5 +1,5 @@
 {
-  "name": "valid-web-visit",
+  "name": "localbridge",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     "api:go:package": "./go-api/scripts/package.sh",
     "macos:dev": "cd macos-status-app && swift run",
     "macos:package": "./macos-status-app/scripts/package-app.sh",
-    "macos:run": "./macos-status-app/scripts/package-app.sh && open macos-status-app/dist/HonoStatusApp.app",
+    "macos:run": "./macos-status-app/scripts/package-app.sh && open macos-status-app/dist/LocalBridge.app",
     "worker:dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "test": "vitest run"

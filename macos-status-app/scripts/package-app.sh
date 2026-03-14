@@ -32,13 +32,15 @@ swift build -c release
 BIN_PATH="$(swift build -c release --show-bin-path)"
 GO_API_BIN_DIR="$PROJECT_ROOT/.tmp/macos-package"
 GO_API_BIN="$GO_API_BIN_DIR/go-api"
-APP_BUNDLE="$APP_ROOT/dist/HonoStatusApp.app"
+APP_ICON_ICNS="$APP_ROOT/assets/AppIcon.icns"
+APP_BUNDLE="$APP_ROOT/dist/LocalBridge.app"
 CONTENTS_DIR="$APP_BUNDLE/Contents"
 MACOS_DIR="$CONTENTS_DIR/MacOS"
 RESOURCES_DIR="$CONTENTS_DIR/Resources"
 RUNTIME_DIR="$RESOURCES_DIR/runtime"
 
 mkdir -p "$GO_API_BIN_DIR"
+swift "$APP_ROOT/assets/generate_icon.swift"
 (
   cd "$PROJECT_ROOT/go-api"
   env CGO_ENABLED=1 GOCACHE="$PROJECT_ROOT/.tmp/go-build" GOTMPDIR="$PROJECT_ROOT/.tmp/go-tmp" \
@@ -48,27 +50,30 @@ mkdir -p "$GO_API_BIN_DIR"
 rm -rf "$APP_BUNDLE"
 mkdir -p "$MACOS_DIR" "$RUNTIME_DIR"
 
-cp "$BIN_PATH/HonoStatusApp" "$MACOS_DIR/HonoStatusApp"
-chmod +x "$MACOS_DIR/HonoStatusApp"
+cp "$BIN_PATH/LocalBridge" "$MACOS_DIR/LocalBridge"
+chmod +x "$MACOS_DIR/LocalBridge"
 
 cp "$GO_API_BIN" "$RUNTIME_DIR/go-api"
 chmod +x "$RUNTIME_DIR/go-api"
+cp "$APP_ICON_ICNS" "$RESOURCES_DIR/AppIcon.icns"
 
 cat > "$CONTENTS_DIR/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+  <key>CFBundleIconFile</key>
+  <string>AppIcon</string>
   <key>CFBundleDevelopmentRegion</key>
   <string>en</string>
   <key>CFBundleExecutable</key>
-  <string>HonoStatusApp</string>
+  <string>LocalBridge</string>
   <key>CFBundleIdentifier</key>
-  <string>com.codex.HonoStatusApp</string>
+  <string>com.codex.LocalBridge</string>
   <key>CFBundleInfoDictionaryVersion</key>
   <string>6.0</string>
   <key>CFBundleName</key>
-  <string>HonoStatusApp</string>
+  <string>LocalBridge</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>CFBundleShortVersionString</key>

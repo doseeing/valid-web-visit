@@ -11,7 +11,7 @@ app.use('*', cors())
 
 app.get('/', (c) => {
   return c.json({
-    message: 'Local Hono API is running',
+    message: 'Local Bridge API is running',
     hello: '/hello',
     files: '/files'
   })
@@ -56,6 +56,6 @@ serve(
     port
   },
   (info) => {
-    console.log(`Local Hono API listening on http://127.0.0.1:${info.port}`)
+    console.log(`Local Bridge API listening on http://127.0.0.1:${info.port}`)
   }
 )

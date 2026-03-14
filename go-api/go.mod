@@ -1,3 +1,3 @@
-module valid_web_visit/go-api
+module localbridge/go-api
 
 go 1.21

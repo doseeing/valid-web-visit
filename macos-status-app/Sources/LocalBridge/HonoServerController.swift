@@ -5,7 +5,7 @@ import Foundation
 import SwiftUI
 
 @MainActor
-final class HonoServerController: ObservableObject {
+final class LocalBridgeController: ObservableObject {
   struct PortOccupant {
     let pid: Int32
     let command: String
@@ -39,7 +39,7 @@ final class HonoServerController: ObservableObject {
 
   init() {
     let configuredURL = ProcessInfo.processInfo.environment["TEST_WEBSITE_URL"]
-    self.testWebsiteURL = URL(string: configuredURL ?? "http://127.0.0.1:8787")!
+    self.testWebsiteURL = URL(string: configuredURL ?? Self.defaultTestWebsiteURLString())!
 
     Task { [weak self] in
       await self?.startServerIfNeeded()
@@ -114,15 +114,15 @@ final class HonoServerController: ObservableObject {
   var menuBarTitle: String {
     switch status {
     case .running:
-      return "Hono On"
+      return "Bridge On"
     case .starting:
-      return "Hono ..."
+      return "Bridge ..."
     case .stopping:
-      return "Hono ..."
+      return "Bridge ..."
     case .stopped:
-      return "Hono Off"
+      return "Bridge Off"
     case .failed:
-      return "Hono Err"
+      return "Bridge Err"
     }
   }
 
@@ -476,7 +476,7 @@ final class HonoServerController: ObservableObject {
   private func promptToTerminatePortOccupant(_ occupant: PortOccupant) async -> Bool {
     let alert = NSAlert()
     alert.messageText = "端口 \(port) 已被占用"
-    alert.informativeText = "\(occupant.command)（PID \(occupant.pid)）正在监听 \(port) 端口。是否帮你结束这个进程，然后继续启动 Hono API？"
+    alert.informativeText = "\(occupant.command)（PID \(occupant.pid)）正在监听 \(port) 端口。是否帮你结束这个进程，然后继续启动 Local Bridge？"
     alert.alertStyle = .warning
     alert.addButton(withTitle: "结束并继续")
     alert.addButton(withTitle: "取消")
@@ -583,6 +583,17 @@ final class HonoServerController: ObservableObject {
 
     var seen: Set<String> = []
     return candidates.filter { seen.insert($0.path).inserted }
+  }
+
+  private static func defaultTestWebsiteURLString() -> String {
+    if let resourceURL = Bundle.main.resourceURL {
+      let runtimeURL = resourceURL.appendingPathComponent("runtime", isDirectory: true)
+      if FileManager.default.fileExists(atPath: runtimeURL.path) {
+        return "https://localbridge.awayyao.workers.dev/"
+      }
+    }
+
+    return "http://127.0.0.1:8787"
   }
 
   private func findProjectRoot(startingAt url: URL) -> URL? {

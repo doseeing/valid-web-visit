@@ -60,7 +60,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, map[string]string{
-		"message": "Local Hono API is running",
+		"message": "Local Bridge API is running",
 		"hello":   "/hello",
 		"files":   "/files",
 	})

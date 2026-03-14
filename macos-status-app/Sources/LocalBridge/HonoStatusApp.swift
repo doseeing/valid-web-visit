@@ -2,8 +2,8 @@ import AppKit
 import SwiftUI
 
 @main
-struct HonoStatusApp: App {
-  @StateObject private var model = HonoServerController()
+struct LocalBridgeApp: App {
+  @StateObject private var model = LocalBridgeController()
 
   init() {
     NSApplication.shared.setActivationPolicy(.accessory)
@@ -21,7 +21,7 @@ struct HonoStatusApp: App {
 }
 
 struct ContentView: View {
-  @ObservedObject var model: HonoServerController
+  @ObservedObject var model: LocalBridgeController
 
   private var serverToggleBinding: Binding<Bool> {
     Binding(
@@ -41,7 +41,7 @@ struct ContentView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
       VStack(alignment: .leading, spacing: 6) {
-        Text("Hono API")
+        Text("Local Bridge")
           .font(.headline)
         Text(model.statusDescription)
           .font(.subheadline)
