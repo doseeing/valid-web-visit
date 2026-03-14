@@ -27,9 +27,25 @@ fi
 
 cd "$APP_ROOT"
 
-swift build -c release
+SWIFT_SCRATCH_PATH="${SWIFT_SCRATCH_PATH:-$PROJECT_ROOT/.tmp/swiftpm-localbridge}"
+SWIFT_MODULECACHE_PATH="${SWIFT_MODULECACHE_PATH:-$PROJECT_ROOT/.tmp/swift-module-cache-localbridge}"
 
-BIN_PATH="$(swift build -c release --show-bin-path)"
+mkdir -p "$SWIFT_SCRATCH_PATH" "$SWIFT_MODULECACHE_PATH"
+
+swift build \
+  --scratch-path "$SWIFT_SCRATCH_PATH" \
+  -Xswiftc -module-cache-path \
+  -Xswiftc "$SWIFT_MODULECACHE_PATH" \
+  -c release
+
+BIN_PATH="$(
+  swift build \
+    --scratch-path "$SWIFT_SCRATCH_PATH" \
+    -Xswiftc -module-cache-path \
+    -Xswiftc "$SWIFT_MODULECACHE_PATH" \
+    -c release \
+    --show-bin-path
+)"
 GO_API_BIN_DIR="$PROJECT_ROOT/.tmp/macos-package"
 GO_API_BIN="$GO_API_BIN_DIR/go-api"
 APP_ICON_ICNS="$APP_ROOT/assets/AppIcon.icns"
