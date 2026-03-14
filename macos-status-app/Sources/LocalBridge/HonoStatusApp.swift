@@ -59,18 +59,19 @@ struct ContentView: View {
           .toggleStyle(.switch)
           .disabled(model.isStarting || model.isStopping)
 
-        Button("打开 /hello") {
-          model.openHelloURL()
-        }
+        // Button("打开 /hello") {
+        //   model.openHelloURL()
+        // }
 
-        Button("打开 /files") {
-          model.openFilesURL()
-        }
-      }
-
-      Button("打开测试网站") {
+        // Button("打开 /files") {
+        //   model.openFilesURL()
+        // }
+              Button("打开网站") {
         model.openTestWebsite()
       }
+      }
+
+
 
       if let errorMessage = model.errorMessage {
         Text(errorMessage)
