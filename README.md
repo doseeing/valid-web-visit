@@ -122,14 +122,13 @@ npm run deploy
 可以直接用 Xcode 打开这个 Swift Package，或者在终端里执行：
 
 ```bash
-cd macos-status-app
-swift run
+npm run macos:dev
 ```
 
 启动后它会：
 
 - 优先使用 App 内置的 Go API 二进制
-- 开发态下如果没有内置运行时，会回退到系统里的 `bun` 运行 `api/server.js`
+- 开发态下会使用系统里的 `go` 直接运行 `go-api`
 - 在菜单栏显示 `Hono On`、`Hono Off`、`Hono ...` 或 `Hono Err`
 - 在菜单里提供 `Start/Stop`、打开 `/hello`、打开 `/files` 和最近日志
 

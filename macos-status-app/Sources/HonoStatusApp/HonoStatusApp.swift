@@ -23,6 +23,21 @@ struct HonoStatusApp: App {
 struct ContentView: View {
   @ObservedObject var model: HonoServerController
 
+  private var serverToggleBinding: Binding<Bool> {
+    Binding(
+      get: { model.isRunning || model.isStarting },
+      set: { shouldRun in
+        Task {
+          if shouldRun {
+            await model.startServerIfNeeded(forceRestart: true)
+          } else {
+            await model.stopServer()
+          }
+        }
+      }
+    )
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
       VStack(alignment: .leading, spacing: 6) {
@@ -40,19 +55,9 @@ struct ContentView: View {
       }
 
       HStack(spacing: 10) {
-        Button(model.isRunning || model.isStopping ? "Stop API" : "Start API") {
-          Task {
-            if model.isRunning || model.isStarting {
-              await model.stopServer()
-            } else if !model.isStopping {
-              await model.startServerIfNeeded(forceRestart: true)
-            } else {
-              return
-            }
-          }
-        }
-        .keyboardShortcut(.defaultAction)
-        .disabled(model.isStopping)
+        Toggle("API", isOn: serverToggleBinding)
+          .toggleStyle(.switch)
+          .disabled(model.isStarting || model.isStopping)
 
         Button("打开 /hello") {
           model.openHelloURL()

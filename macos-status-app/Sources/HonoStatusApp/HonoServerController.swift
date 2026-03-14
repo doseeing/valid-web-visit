@@ -50,17 +50,12 @@ final class HonoServerController: ObservableObject {
     resolvedProjectRoot ?? sourceRootFallback
   }
 
-  var apiScriptURL: URL {
-    if let bundledRuntimeRootURL {
-      return bundledRuntimeRootURL
-        .appendingPathComponent("api", isDirectory: true)
-        .appendingPathComponent("server.js")
-    }
-    return projectRoot.appendingPathComponent("api/server.js")
+  var devGoAPIRootURL: URL {
+    projectRoot.appendingPathComponent("go-api", isDirectory: true)
   }
 
   var runtimeWorkingDirectoryURL: URL {
-    bundledRuntimeRootURL ?? projectRoot
+    bundledRuntimeRootURL ?? devGoAPIRootURL
   }
 
   var bundledGoBinaryURL: URL? {
@@ -77,7 +72,7 @@ final class HonoServerController: ObservableObject {
   }
 
   var runtimeDisplayName: String {
-    bundledGoBinaryURL != nil ? "Go" : "Bun"
+    "Go"
   }
 
   var isRunning: Bool {
@@ -212,16 +207,16 @@ final class HonoServerController: ObservableObject {
       executableURL = bundledGoBinaryURL
       arguments = []
     } else {
-      guard FileManager.default.fileExists(atPath: apiScriptURL.path) else {
-        setFailure("找不到 API 脚本: \(apiScriptURL.path)")
+      guard FileManager.default.fileExists(atPath: devGoAPIRootURL.path) else {
+        setFailure("找不到 Go API 目录: \(devGoAPIRootURL.path)")
         return
       }
-      guard let bunBinaryURL = resolveBunBinaryURL() else {
-        setFailure("找不到 Bun。请先安装 Bun，或使用打包脚本把 Bun 一起放进 App。")
+      guard let goBinaryURL = resolveGoBinaryURL() else {
+        setFailure("找不到 Go。请先安装 Go，或通过 GO_BINARY_PATH 指向 go 可执行文件。")
         return
       }
-      executableURL = bunBinaryURL
-      arguments = [apiScriptURL.path]
+      executableURL = goBinaryURL
+      arguments = ["run", "-ldflags=-linkmode=external", "."]
     }
 
     if let occupant = await findPortOccupant() {
@@ -556,15 +551,8 @@ final class HonoServerController: ObservableObject {
     }
   }
 
-  private func resolveBunBinaryURL() -> URL? {
-    if let bundledRuntimeRootURL {
-      let bundledBunBinaryURL = bundledRuntimeRootURL.appendingPathComponent("bun")
-      if FileManager.default.isExecutableFile(atPath: bundledBunBinaryURL.path) {
-        return bundledBunBinaryURL
-      }
-    }
-
-    for candidate in bunBinaryCandidates() {
+  private func resolveGoBinaryURL() -> URL? {
+    for candidate in goBinaryCandidates() {
       if FileManager.default.isExecutableFile(atPath: candidate.path) {
         return candidate
       }
@@ -573,11 +561,11 @@ final class HonoServerController: ObservableObject {
     return nil
   }
 
-  private func bunBinaryCandidates() -> [URL] {
+  private func goBinaryCandidates() -> [URL] {
     var candidates: [URL] = []
 
-    if let explicitBunPath = ProcessInfo.processInfo.environment["BUN_BINARY_PATH"], !explicitBunPath.isEmpty {
-      candidates.append(URL(fileURLWithPath: explicitBunPath))
+    if let explicitGoPath = ProcessInfo.processInfo.environment["GO_BINARY_PATH"], !explicitGoPath.isEmpty {
+      candidates.append(URL(fileURLWithPath: explicitGoPath))
     }
 
     let pathEntries = (ProcessInfo.processInfo.environment["PATH"] ?? "")
@@ -585,13 +573,13 @@ final class HonoServerController: ObservableObject {
       .map(String.init)
 
     for entry in pathEntries where !entry.isEmpty {
-      candidates.append(URL(fileURLWithPath: entry).appendingPathComponent("bun"))
+      candidates.append(URL(fileURLWithPath: entry).appendingPathComponent("go"))
     }
 
     let homeDirectoryPath = FileManager.default.homeDirectoryForCurrentUser.path
-    candidates.append(URL(fileURLWithPath: homeDirectoryPath).appendingPathComponent(".bun/bin/bun"))
-    candidates.append(URL(fileURLWithPath: "/opt/homebrew/bin/bun"))
-    candidates.append(URL(fileURLWithPath: "/usr/local/bin/bun"))
+    candidates.append(URL(fileURLWithPath: homeDirectoryPath).appendingPathComponent("go/bin/go"))
+    candidates.append(URL(fileURLWithPath: "/opt/homebrew/bin/go"))
+    candidates.append(URL(fileURLWithPath: "/usr/local/bin/go"))
 
     var seen: Set<String> = []
     return candidates.filter { seen.insert($0.path).inserted }
@@ -606,8 +594,8 @@ final class HonoServerController: ObservableObject {
     }
 
     while true {
-      let apiPath = currentURL.appendingPathComponent("api/server.js").path
-      if fileManager.fileExists(atPath: apiPath) {
+      let goAPIPath = currentURL.appendingPathComponent("go-api/main.go").path
+      if fileManager.fileExists(atPath: goAPIPath) {
         return currentURL
       }
 
