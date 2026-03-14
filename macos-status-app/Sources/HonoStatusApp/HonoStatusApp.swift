@@ -13,9 +13,6 @@ struct HonoStatusApp: App {
     MenuBarExtra {
       ContentView(model: model)
         .frame(width: 320)
-        .task {
-          await model.startServerIfNeeded()
-        }
     } label: {
       Label(model.menuBarTitle, systemImage: model.menuBarSymbol)
     }

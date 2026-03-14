@@ -4,7 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "api:dev": "node api/server.js",
+    "api:dev": "bun api/server.js",
+    "api:go": "cd go-api && go run -ldflags=-linkmode=external .",
+    "api:go:package": "./go-api/scripts/package.sh",
+    "macos:package": "./macos-status-app/scripts/package-app.sh",
     "worker:dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "test": "vitest run"

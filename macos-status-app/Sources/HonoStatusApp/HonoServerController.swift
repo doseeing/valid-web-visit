@@ -40,6 +40,10 @@ final class HonoServerController: ObservableObject {
   init() {
     let configuredURL = ProcessInfo.processInfo.environment["TEST_WEBSITE_URL"]
     self.testWebsiteURL = URL(string: configuredURL ?? "http://127.0.0.1:8787")!
+
+    Task { [weak self] in
+      await self?.startServerIfNeeded()
+    }
   }
 
   var projectRoot: URL {
@@ -47,11 +51,33 @@ final class HonoServerController: ObservableObject {
   }
 
   var apiScriptURL: URL {
-    projectRoot.appendingPathComponent("api/server.js")
+    if let bundledRuntimeRootURL {
+      return bundledRuntimeRootURL
+        .appendingPathComponent("api", isDirectory: true)
+        .appendingPathComponent("server.js")
+    }
+    return projectRoot.appendingPathComponent("api/server.js")
   }
 
-  var nodeBinaryURL: URL {
-    URL(fileURLWithPath: "/usr/bin/env")
+  var runtimeWorkingDirectoryURL: URL {
+    bundledRuntimeRootURL ?? projectRoot
+  }
+
+  var bundledGoBinaryURL: URL? {
+    guard let runtimeRootURL = bundledRuntimeRootURL else {
+      return nil
+    }
+
+    let binaryURL = runtimeRootURL.appendingPathComponent("go-api")
+    guard FileManager.default.isExecutableFile(atPath: binaryURL.path) else {
+      return nil
+    }
+
+    return binaryURL
+  }
+
+  var runtimeDisplayName: String {
+    bundledGoBinaryURL != nil ? "Go" : "Bun"
   }
 
   var isRunning: Bool {
@@ -143,6 +169,19 @@ final class HonoServerController: ObservableObject {
       .deletingLastPathComponent()
   }
 
+  private var bundledRuntimeRootURL: URL? {
+    guard let resourceURL = Bundle.main.resourceURL else {
+      return nil
+    }
+
+    let runtimeURL = resourceURL.appendingPathComponent("runtime", isDirectory: true)
+    guard FileManager.default.fileExists(atPath: runtimeURL.path) else {
+      return nil
+    }
+
+    return runtimeURL
+  }
+
   private var resolvedProjectRoot: URL? {
     let candidates = [
       Bundle.main.bundleURL,
@@ -166,9 +205,23 @@ final class HonoServerController: ObservableObject {
       return
     }
 
-    guard FileManager.default.fileExists(atPath: apiScriptURL.path) else {
-      setFailure("找不到 API 脚本: \(apiScriptURL.path)")
-      return
+    let executableURL: URL
+    let arguments: [String]
+
+    if let bundledGoBinaryURL {
+      executableURL = bundledGoBinaryURL
+      arguments = []
+    } else {
+      guard FileManager.default.fileExists(atPath: apiScriptURL.path) else {
+        setFailure("找不到 API 脚本: \(apiScriptURL.path)")
+        return
+      }
+      guard let bunBinaryURL = resolveBunBinaryURL() else {
+        setFailure("找不到 Bun。请先安装 Bun，或使用打包脚本把 Bun 一起放进 App。")
+        return
+      }
+      executableURL = bunBinaryURL
+      arguments = [apiScriptURL.path]
     }
 
     if let occupant = await findPortOccupant() {
@@ -191,14 +244,14 @@ final class HonoServerController: ObservableObject {
     errorMessage = nil
     status = .starting
     startupDeadline = Date().addingTimeInterval(startupGracePeriod)
-    appendLog("准备启动 Node 进程")
+    appendLog("准备启动 \(runtimeDisplayName) 进程")
 
     let process = Process()
     let pipe = Pipe()
 
-    process.executableURL = nodeBinaryURL
-    process.arguments = ["node", apiScriptURL.path]
-    process.currentDirectoryURL = projectRoot
+    process.executableURL = executableURL
+    process.arguments = arguments
+    process.currentDirectoryURL = runtimeWorkingDirectoryURL
     process.standardOutput = pipe
     process.standardError = pipe
 
@@ -234,14 +287,14 @@ final class HonoServerController: ObservableObject {
         if case .stopping = self.status {
           self.status = .stopped
           self.startupDeadline = nil
-          self.appendLog("Node 进程已停止，退出码 \(code)")
+          self.appendLog("\(self.runtimeDisplayName) 进程已停止，退出码 \(code)")
         } else if case .running = self.status {
           self.status = .stopped
           self.startupDeadline = nil
-          self.appendLog("Node 进程已停止，退出码 \(code)")
+          self.appendLog("\(self.runtimeDisplayName) 进程已停止，退出码 \(code)")
         } else {
           self.startupDeadline = nil
-          self.setFailure("Node 进程退出，退出码 \(code)")
+          self.setFailure("\(self.runtimeDisplayName) 进程退出，退出码 \(code)")
         }
       }
     }
@@ -249,11 +302,11 @@ final class HonoServerController: ObservableObject {
     do {
       try process.run()
       self.process = process
-      appendLog("Node 进程已启动，PID \(process.processIdentifier)")
+      appendLog("\(runtimeDisplayName) 进程已启动，PID \(process.processIdentifier)")
       startPolling(requestID: currentRequestID)
     } catch {
       startupDeadline = nil
-      setFailure("无法启动 Node: \(error.localizedDescription)")
+      setFailure("无法启动 \(runtimeDisplayName): \(error.localizedDescription)")
     }
   }
 
@@ -266,18 +319,18 @@ final class HonoServerController: ObservableObject {
 
     guard let process else {
       status = .stopped
-      appendLog("没有可停止的 Node 进程")
+      appendLog("没有可停止的 \(runtimeDisplayName) 进程")
       return
     }
 
     if !process.isRunning {
       self.process = nil
       status = .stopped
-      appendLog("Node 进程已经停止")
+      appendLog("\(runtimeDisplayName) 进程已经停止")
       return
     }
 
-    appendLog("正在停止 Node 进程")
+    appendLog("正在停止 \(runtimeDisplayName) 进程")
     status = .stopping
 
     process.terminate()
@@ -291,7 +344,7 @@ final class HonoServerController: ObservableObject {
     if terminated {
       self.process = nil
       status = .stopped
-      appendLog("Node 进程已确认停止")
+      appendLog("\(runtimeDisplayName) 进程已确认停止")
     } else {
       setFailure("停止超时，请稍后重试")
     }
@@ -501,6 +554,47 @@ final class HonoServerController: ObservableObject {
         )
       }
     }
+  }
+
+  private func resolveBunBinaryURL() -> URL? {
+    if let bundledRuntimeRootURL {
+      let bundledBunBinaryURL = bundledRuntimeRootURL.appendingPathComponent("bun")
+      if FileManager.default.isExecutableFile(atPath: bundledBunBinaryURL.path) {
+        return bundledBunBinaryURL
+      }
+    }
+
+    for candidate in bunBinaryCandidates() {
+      if FileManager.default.isExecutableFile(atPath: candidate.path) {
+        return candidate
+      }
+    }
+
+    return nil
+  }
+
+  private func bunBinaryCandidates() -> [URL] {
+    var candidates: [URL] = []
+
+    if let explicitBunPath = ProcessInfo.processInfo.environment["BUN_BINARY_PATH"], !explicitBunPath.isEmpty {
+      candidates.append(URL(fileURLWithPath: explicitBunPath))
+    }
+
+    let pathEntries = (ProcessInfo.processInfo.environment["PATH"] ?? "")
+      .split(separator: ":")
+      .map(String.init)
+
+    for entry in pathEntries where !entry.isEmpty {
+      candidates.append(URL(fileURLWithPath: entry).appendingPathComponent("bun"))
+    }
+
+    let homeDirectoryPath = FileManager.default.homeDirectoryForCurrentUser.path
+    candidates.append(URL(fileURLWithPath: homeDirectoryPath).appendingPathComponent(".bun/bin/bun"))
+    candidates.append(URL(fileURLWithPath: "/opt/homebrew/bin/bun"))
+    candidates.append(URL(fileURLWithPath: "/usr/local/bin/bun"))
+
+    var seen: Set<String> = []
+    return candidates.filter { seen.insert($0.path).inserted }
   }
 
   private func findProjectRoot(startingAt url: URL) -> URL? {

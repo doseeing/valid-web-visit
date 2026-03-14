@@ -4,6 +4,11 @@ node_modules
 macos-status-app/.build
 macos-status-app/.swiftpm
 macos-status-app/Packages
+macos-status-app/dist
 macos-status-app/*.xcodeproj
 macos-status-app/*.xcworkspace
 DerivedData
+.tmp/
+go-api/dist/
+go-api/go-api
+go-api/*.exe
